@@ -46,9 +46,12 @@ class Connection(object):
         user
             string, user to connect as
 
+        verbose
+            bool, default true.  displays hive progress messages.
+
         init_command
             command which is run once the connection is created
-            (not implemented
+            (not implemented)
 
         write_access
             bool, issues hive queries as sudo
@@ -61,6 +64,7 @@ class Connection(object):
         self.user = kwargs.pop('user', os.environ.get('USER', None))
         self.port = kwargs.pop('port', None)
         self.write_access = kwargs.pop('write_access', False)
+        self.verbose = kwargs.pop('verbose', True)
         self.closed = False
         self.messages = []
 

@@ -8,37 +8,30 @@ import threading
 import subprocess as sp
 
 class Query(threading.Thread):
-    def __init__(self, command, output=None, error=None, info=None):
+    def __init__(self, id, command, output=None, error=None, info=None):
         threading.Thread.__init__(self)
+        self.id = id
         self.command = command
-        self.kill_received = False
-        self.process = None
         self.infoCallback = info
         self.errorCallback = error
         self.outputCallback = output
+        self.ready = False
 
     def run(self):
-        while not self.kill_received:
-            self.process = sp.Popen(self.command, stdout=sp.PIPE, stderr=sp.PIPE)
-            while self.process.poll() == None:
-                message = self.process.stderr.readline().replace('\n', '')
-                if message != '' and self.infoCallback:
-                    self.infoCallback(message)
-                if 'OK' in message:
-                    break
-                if 'FAILED' in message and self.errorCallback:
-                    self.errorCallback(message)
-                    break
-            self.outputCallback(self.process.stdout)
-            break
+        process = sp.Popen(self.command, stdout=sp.PIPE, stderr=sp.PIPE)
+        while process.poll() == None:
+            message = process.stderr.readline().replace('\n', '')
+            if message != '' and self.infoCallback:
+                self.infoCallback(self.id, message)
+            if 'OK' in message:
+                break
+            if 'FAILED' in message and self.errorCallback:
+                self.errorCallback(self.id, message)
+                break
+        self.result = process.stdout
+        self.outputCallback(self.id, process.stdout)
+        self.ready = True
 
     def wait(self):
-        while not self.ready():
+        while not self.ready:
             pass
-    
-    def kill(self):
-        self.kill_received = True
-
-    def ready(self):
-        return self.process and (not self.isAlive() or self.process.poll() != None)
-

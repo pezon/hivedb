@@ -1,9 +1,14 @@
-"""hivedb - A DB API v2.0 compatible interface to MySQL.
+"""hivedb - A DB API v2.0 compatible interface for HIVE CLI
 
-This package is a wrapper around hive streaming.
+This package is a wrapper around HIVE CLI.  Until HiveThrift
+stops sucking, it will continue to use HIVE CLI.
 
 connect() -- connects to server
 """
+
+__author__ = "Peter Pezon <peter.pezon@escapemg.com>"
+version_info = (0,1,0)
+__version__ = '0.1.0'
 
 threadsafety = 1
 apilevle = '2.0'
