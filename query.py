@@ -2,6 +2,8 @@
 Hive db query
 This module sends commands or queries to hive db.
 Cursor objects handle this query object.
+
+@ TODO Im sure theres a better way to refactor this.
 """
 
 import logging
@@ -26,12 +28,12 @@ class Query(Thread):
         process = Popen(self.command, stdout=PIPE, stderr=PIPE)
         while process.poll() == None:
             message = process.stderr.readline().replace('\n', '')
-            if message != '' and self.info_callback:
-                self.info_callback(self.id, message)
+            if message != '' and self.info_cb:
+                self.info_cb(self.id, message)
             if 'OK' in message:
                 break
-            if 'FAILED' in message and self.error_callback:
-                self.error_callback(self.id, message)
+            if 'FAILED' in message and self.error_cb:
+                self.error_cb(self.id, message)
                 break
         self.result = process.stdout
         self.output_callback(self.id, self.result)
