@@ -4,34 +4,39 @@ This module sends commands or queries to hive db.
 Cursor objects handle this query object.
 """
 
-import threading 
-import subprocess as sp
+import logging
+from threading import Thread
+from subprocess import PIPE, Popen
 
-class Query(threading.Thread):
-    def __init__(self, id, command, output=None, error=None, info=None):
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+class Query(Thread):
+    def __init__(self, id, command, info=None, error=None, output=None):
         threading.Thread.__init__(self)
         self.id = id
         self.command = command
-        self.infoCallback = info
-        self.errorCallback = error
-        self.outputCallback = output
+        self.info_cb, self.error_cb, self.output_cb = info, error, output
+        logger.info('Init query id=%s command=%s', self.id, self.command)
         self.ready = False
+        self.result = None
 
     def run(self):
-        process = sp.Popen(self.command, stdout=sp.PIPE, stderr=sp.PIPE)
+        logger.info('Run query id=%s command=%s', self.id, self.command)
+        process = Popen(self.command, stdout=PIPE, stderr=PIPE)
         while process.poll() == None:
             message = process.stderr.readline().replace('\n', '')
-            if message != '' and self.infoCallback:
-                self.infoCallback(self.id, message)
+            if message != '' and self.info_callback:
+                self.info_callback(self.id, message)
             if 'OK' in message:
                 break
-            if 'FAILED' in message and self.errorCallback:
-                self.errorCallback(self.id, message)
+            if 'FAILED' in message and self.error_callback:
+                self.error_callback(self.id, message)
                 break
         self.result = process.stdout
-        self.outputCallback(self.id, process.stdout)
+        self.output_callback(self.id, self.result)
         self.ready = True
 
     def wait(self):
         while not self.ready:
-            pass
+            continue
