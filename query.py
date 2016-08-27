@@ -36,7 +36,7 @@ class Query(Thread):
                 self.error_cb(self.id, message)
                 break
         self.result = process.stdout
-        self.output_callback(self.id, self.result)
+        self.output_cb(self.id, self.result)
         self.ready = True
 
     def wait(self):
